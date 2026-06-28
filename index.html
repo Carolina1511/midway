@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Midhub – Zehn Freunde</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+  :root {
+    --navy:#07153E; --orange:#FF541D; --blue:#879ED1; --offwht:#E8E8E6;
+    --white:#FFFFFF; --card:#FFFFFF; --bg:#E8E8E6; --muted:#6A7592;
+    --border:#D5D9E4; --light:#F4F5F8;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  body { background:var(--bg); min-height:100vh; }
+  .screen { display:none; } .screen.active { display:block; }
+
+  .header { background:var(--navy); padding:18px 20px 16px; position:sticky; top:0; z-index:10; }
+  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .logo { display:flex; align-items:center; gap:4px; }
+  .logo-text { color:var(--offwht); font-weight:500; letter-spacing:.06em; font-size:15px; }
+  .header-sub { color:var(--blue); font-size:9px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:3px; }
+  .header-title { color:var(--offwht); font-size:16px; font-weight:500; }
+  .header-claim { color:var(--blue); font-size:11px; }
+  .badge { font-size:10px; font-weight:500; padding:2px 10px; border-radius:999px; background:#1B2C57; color:var(--blue); }
+  .btn-switch { background:none; border:none; color:var(--blue); font-size:11px; cursor:pointer; margin-left:6px; }
+
+  .nav { display:flex; background:var(--navy); padding:0 20px; border-top:.5px solid #1B2C57; }
+  .nav-tab { flex:1; padding:10px 0; text-align:center; color:var(--blue); font-size:11px; font-weight:500; cursor:pointer; border-bottom:2px solid transparent; transition:color .15s,border-color .15s; }
+  .nav-tab.active { color:var(--offwht); border-bottom-color:var(--orange); }
+  .nav-tab i { display:block; font-size:18px; margin-bottom:2px; }
+
+  .content { padding:16px; max-width:520px; margin:0 auto; }
+  .card { background:var(--card); border:.5px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; }
+  .card-dark { background:var(--navy); border-color:var(--navy); border-radius:14px; padding:16px; margin-bottom:12px; }
+  .lbl { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--blue); font-weight:500; }
+  .muted { color:var(--muted); font-size:12px; }
+  .row { display:flex; align-items:center; gap:8px; }
+
+  /* Countdown */
+  .countdown { background:linear-gradient(135deg,#07153E,#0E2350); border-radius:14px; padding:16px; margin-bottom:12px; }
+  .cd-grid { display:flex; gap:8px; margin-top:10px; }
+  .cd-box { flex:1; background:#FFFFFF12; border:.5px solid #FFFFFF22; border-radius:10px; padding:10px 4px; text-align:center; }
+  .cd-num { color:var(--offwht); font-size:24px; font-weight:500; line-height:1; }
+  .cd-unit { color:var(--blue); font-size:9px; text-transform:uppercase; letter-spacing:.1em; margin-top:4px; }
+
+  .score-bar { height:18px; border-radius:9px; overflow:hidden; display:flex; background:var(--bg); }
+  .score-bar-f { background:var(--navy); height:100%; transition:width .5s ease; min-width:2px; }
+  .score-bar-d { background:var(--orange); height:100%; transition:width .5s ease; min-width:2px; }
+  .score-pts { font-size:13px; font-weight:500; }
+
+  input[type=number],input[type=text],select,textarea {
+    background:var(--white); border:.5px solid #C5CAD8; color:var(--navy);
+    border-radius:8px; padding:9px 10px; font-size:13px; width:100%; font-family:inherit;
+  }
+  textarea { resize:vertical; min-height:54px; }
+  input:focus,select:focus,textarea:focus { outline:2px solid var(--blue); outline-offset:1px; }
+  label.inp-label { font-size:11px; color:var(--muted); display:block; margin-bottom:4px; }
+
+  .btn-orange { background:var(--orange); color:#fff; border:none; border-radius:10px; padding:11px; font-size:13px; font-weight:500; cursor:pointer; width:100%; font-family:inherit; transition:opacity .15s; }
+  .btn-orange:disabled { opacity:.4; cursor:default; }
+  .btn-orange:not(:disabled):hover { opacity:.88; }
+  .btn-ghost { background:transparent; color:var(--navy); border:.5px solid var(--blue); border-radius:10px; padding:7px 12px; font-size:12px; font-weight:500; cursor:pointer; }
+
+  .disc-row { display:flex; gap:8px; }
+  .dcard { flex:1; background:var(--light); border:1.5px solid var(--border); border-radius:12px; padding:12px 6px; text-align:center; cursor:pointer; transition:border-color .15s,background .15s; user-select:none; }
+  .dcard:hover { border-color:var(--blue); }
+  .dcard.sel { background:#EEF0F7; border-color:var(--navy); }
+  .dcard i { font-size:24px; pointer-events:none; }
+  .dcard .dn { font-size:10px; color:#3A4566; margin-top:4px; font-weight:500; pointer-events:none; }
+  .dcard .dp { font-size:10px; color:var(--blue); margin-top:1px; pointer-events:none; }
+
+  .photo-zone { background:var(--light); border:1.5px dashed var(--border); border-radius:10px; padding:18px; text-align:center; cursor:pointer; transition:border-color .15s; }
+  .photo-zone:hover { border-color:var(--blue); }
+  .photo-zone i { font-size:26px; color:var(--blue); pointer-events:none; }
+  .photo-zone p { font-size:11px; color:var(--blue); margin-top:5px; pointer-events:none; }
+  .photo-preview { position:relative; }
+  .photo-preview img { width:100%; border-radius:10px; max-height:160px; object-fit:cover; display:block; }
+  .photo-badge { position:absolute; top:8px; right:8px; background:var(--navy); color:var(--offwht); font-size:10px; font-weight:500; padding:2px 8px; border-radius:999px; }
+  .photo-remove { position:absolute; top:8px; left:8px; background:var(--orange); color:#fff; border:none; border-radius:999px; width:22px; height:22px; font-size:14px; cursor:pointer; line-height:22px; text-align:center; }
+
+  .pts-prev { background:var(--light); border-radius:10px; padding:11px 14px; margin-bottom:12px; }
+  .pts-num { color:var(--navy); font-weight:500; font-size:18px; }
+  .pts-break { font-size:10px; color:var(--blue); margin-top:2px; }
+
+  .toast { display:none; background:var(--navy); color:var(--offwht); border-radius:10px; padding:11px 14px; margin-bottom:12px; font-size:12px; line-height:1.5; }
+  .toast.show { display:block; }
+
+  .post { background:var(--light); border:.5px solid var(--border); border-radius:12px; padding:12px; margin-bottom:8px; }
+  .post-name { color:var(--navy); font-size:13px; font-weight:500; }
+  .post-meta { color:var(--muted); font-size:11px; }
+  .post-detail { color:var(--navy); font-size:11px; margin-top:5px; background:var(--white); border-radius:7px; padding:6px 9px; border:.5px solid var(--border); }
+  .joinb { background:transparent; border:.5px solid var(--orange); color:var(--orange); border-radius:8px; padding:5px 10px; font-size:11px; font-weight:500; cursor:pointer; white-space:nowrap; }
+  .joinb.joined { background:var(--orange); color:#fff; }
+  .participants { margin-top:8px; padding-top:8px; border-top:.5px solid var(--border); }
+  .chip { display:inline-block; font-size:10px; background:var(--white); border:.5px solid var(--border); color:var(--navy); border-radius:999px; padding:2px 9px; margin:2px 3px 0 0; }
+  .chip.me { background:#FFF0EA; border-color:var(--orange); color:var(--orange); font-weight:500; }
+  .icon-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:15px; padding:2px 4px; }
+  .icon-btn:hover { color:var(--navy); }
+
+  .board-row { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:.5px solid var(--border); }
+  .board-row:last-child { border-bottom:none; }
+  .board-rank { color:#9AA3B8; width:20px; font-size:12px; }
+  .board-name { color:var(--navy); font-size:13px; }
+  .board-name.me { color:var(--orange); font-weight:500; }
+  .board-pts { color:#3A4566; font-size:12px; }
+  .board-empty { color:var(--muted); font-size:12px; text-align:center; padding:10px 0; }
+  .pill { font-size:9px; font-weight:500; padding:1px 7px; border-radius:999px; margin-left:5px; }
+  .pill-f { background:#07153E18; color:var(--navy); } .pill-d { background:#FF541D18; color:var(--orange); }
+
+  #onb { min-height:100vh; background:var(--bg); }
+  .onb-header { background:var(--navy); padding:28px 24px 24px; }
+  .onb-body { padding:20px; max-width:440px; margin:0 auto; }
+  .city-card { flex:1; background:var(--white); border:1.5px solid var(--border); border-radius:14px; padding:18px 10px; text-align:center; cursor:pointer; transition:border-color .15s,background .15s; user-select:none; }
+  .city-card i { font-size:28px; pointer-events:none; }
+  .city-card .cn { font-size:14px; font-weight:500; margin-top:6px; pointer-events:none; }
+  .city-card .cs { font-size:10px; pointer-events:none; }
+  .city-card.sel-f { border-color:var(--navy); background:#EEF0F7; }
+  .city-card.sel-d { border-color:var(--orange); background:#FFF0EA; }
+
+  .modal-bg { display:none; position:fixed; inset:0; background:#07153Eaa; z-index:50; align-items:center; justify-content:center; padding:20px; }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--white); border-radius:16px; padding:20px; max-width:440px; width:100%; max-height:90vh; overflow-y:auto; }
+</style>
+</head>
+<body>
+
+<!-- ════════ ONBOARDING ════════ -->
+<div id="onb" class="screen active">
+  <div class="onb-header">
+    <div class="logo" style="margin-bottom:18px;">
+      <svg width="24" height="20" viewBox="0 0 165 136" xmlns="http://www.w3.org/2000/svg"><path fill="#FF541D" d="M125.3,0h0s0,0,0,0c-.8,0-1.7-.1-2.5-.1,0,0,0,0,0,0h-.3s0,0,0,0c-.6,0-1.2,0-1.8,0-.3,0-.6,0-.9,0,0,0,0,0,0,0h0c-10.8,1.2-16.8,9.7-20.5,14.9-.8,1.2-1.7,2.4-2.4,3.3l-.3.4-20.6,27.1-20.6-27.1-.3-.4c-.7-.9-1.6-2.1-2.4-3.3C48.9,9.6,43,1.1,32.1,0h0s0,0,0,0c-.3,0-.6,0-.9,0-.6,0-1.2,0-1.8,0,0,0,0,0,0,0h-.3s0,0,0,0c-.9,0-1.7,0-2.5.1,0,0,0,0,0,0h0C9.9,1.4,0,13.2.2,30.6v105.5h34.4s41.2-57.4,41.2-57.4l41.2,57.4h34.4V30.6c0-17.4-9.7-29.2-26.3-30.6ZM24.9,116.5h-5.5V30.6c0-2.8-.2-4.6,0-5.7.2-.8.3-1.7,1.1-2.9.9-1.4,2.4-2.6,3.7-3.1,3.7-1.4,7.4,0,9.3,2.7,1.2,1.7,30.1,40.8,30.1,40.8l-38.8,54.1ZM132.5,30.6v85.9h-5.6l-38.8-54.1s28.9-39.1,30.1-40.8c1.9-2.7,5.6-4.1,9.3-2.7,1.3.5,2.8,1.7,3.7,3.1.8,1.2.9,2.1,1.1,2.9.3,1.1.2,2.9.2,5.7Z"/></svg>
+      <span class="logo-text">IDSTAD</span>
+    </div>
+    <div class="header-sub">Zehn Freunde</div>
+    <div style="color:var(--offwht);font-size:26px;font-weight:500;margin-bottom:4px;">Midhub</div>
+    <div style="color:var(--blue);font-size:13px;">creating better performance</div>
+  </div>
+  <div class="onb-body">
+    <div class="card" style="margin-top:20px;margin-bottom:12px;">
+      <div style="color:var(--navy);font-weight:500;font-size:15px;margin-bottom:8px;">Rhein vs. Main</div>
+      <div class="muted" style="line-height:1.7;">Frankfurt und Düsseldorf treten gegeneinander an — bis zum großen Triathlon. Jeder Kilometer zählt: für dich persönlich und für dein Team.</div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="margin-bottom:14px;">Dein Standort</div>
+      <div class="row" style="gap:12px;margin-bottom:16px;">
+        <div class="city-card" id="cF" onclick="selCity('F')">
+          <i class="ti ti-building-bank" style="color:var(--navy);"></i>
+          <div class="cn" style="color:var(--navy);">Frankfurt</div>
+          <div class="cs" style="color:var(--blue);">Team Main</div>
+        </div>
+        <div class="city-card" id="cD" onclick="selCity('D')">
+          <i class="ti ti-building" style="color:var(--orange);"></i>
+          <div class="cn" style="color:var(--orange);">Düsseldorf</div>
+          <div class="cs" style="color:#C2643F;">Team Rhein</div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label class="inp-label" for="inp_name">Dein Name (erscheint in der Rangliste)</label>
+        <input type="text" id="inp_name" placeholder="z. B. Lisa M." oninput="chkOnb()"/>
+      </div>
+      <button class="btn-orange" id="onb_btn" onclick="startApp()" disabled>Los geht's →</button>
+    </div>
+    <p style="text-align:center;font-size:10px;color:#9AA3B8;padding:8px 0;">
+      <i class="ti ti-lock" style="font-size:11px;vertical-align:-1px;"></i> Nur für Midstad-Kollegen · kein Passwort nötig
+    </p>
+  </div>
+</div>
+
+<!-- ════════ HAUPT-APP ════════ -->
+<div id="main" class="screen">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <svg width="20" height="16" viewBox="0 0 165 136" xmlns="http://www.w3.org/2000/svg"><path fill="#FF541D" d="M125.3,0h0s0,0,0,0c-.8,0-1.7-.1-2.5-.1,0,0,0,0,0,0h-.3s0,0,0,0c-.6,0-1.2,0-1.8,0-.3,0-.6,0-.9,0,0,0,0,0,0,0h0c-10.8,1.2-16.8,9.7-20.5,14.9-.8,1.2-1.7,2.4-2.4,3.3l-.3.4-20.6,27.1-20.6-27.1-.3-.4c-.7-.9-1.6-2.1-2.4-3.3C48.9,9.6,43,1.1,32.1,0h0s0,0,0,0c-.3,0-.6,0-.9,0-.6,0-1.2,0-1.8,0,0,0,0,0,0,0h-.3s0,0,0,0c-.9,0-1.7,0-2.5.1,0,0,0,0,0,0h0C9.9,1.4,0,13.2.2,30.6v105.5h34.4s41.2-57.4,41.2-57.4l41.2,57.4h34.4V30.6c0-17.4-9.7-29.2-26.3-30.6ZM24.9,116.5h-5.5V30.6c0-2.8-.2-4.6,0-5.7.2-.8.3-1.7,1.1-2.9.9-1.4,2.4-2.6,3.7-3.1,3.7-1.4,7.4,0,9.3,2.7,1.2,1.7,30.1,40.8,30.1,40.8l-38.8,54.1ZM132.5,30.6v85.9h-5.6l-38.8-54.1s28.9-39.1,30.1-40.8c1.9-2.7,5.6-4.1,9.3-2.7,1.3.5,2.8,1.7,3.7,3.1.8,1.2.9,2.1,1.1,2.9.3,1.1.2,2.9.2,5.7Z"/></svg>
+        <span class="logo-text">IDSTAD</span>
+      </div>
+      <div class="row">
+        <span class="badge" id="hdr_badge">FFM</span>
+        <button class="btn-switch" onclick="resetApp()">wechseln</button>
+      </div>
+    </div>
+    <div class="header-sub">Zehn Freunde</div>
+    <div class="header-title">Midhub</div>
+    <div class="header-claim">creating better performance</div>
+    <div id="sync_status" style="font-size:10px;color:#879ED1;margin-top:6px;"><i class="ti ti-device-laptop" style="font-size:11px;"></i> Lokaler Test-Modus</div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-tab active" id="tab_dash" onclick="showTab('dash')"><i class="ti ti-chart-bar"></i>Dashboard</div>
+    <div class="nav-tab" id="tab_log" onclick="showTab('log')"><i class="ti ti-plus-circle"></i>Einheit</div>
+    <div class="nav-tab" id="tab_comm" onclick="showTab('comm')"><i class="ti ti-users"></i>Community</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="tab_dash_content" class="content">
+
+    <!-- Countdown -->
+    <div class="countdown">
+      <div class="lbl" style="color:var(--blue);"><i class="ti ti-flag" style="font-size:11px;"></i> Countdown bis zum Triathlon</div>
+      <div id="cd_target" style="color:var(--offwht);font-size:13px;font-weight:500;margin-top:4px;"></div>
+      <div class="cd-grid" id="cd_grid">
+        <div class="cd-box"><div class="cd-num" id="cd_days">–</div><div class="cd-unit">Tage</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd_hours">–</div><div class="cd-unit">Std</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd_mins">–</div><div class="cd-unit">Min</div></div>
+      </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px;">
+        <div><div style="color:var(--navy);font-weight:500;font-size:14px;"><i class="ti ti-map-pin" style="font-size:13px;"></i> Frankfurt</div><div class="muted">Team Main</div></div>
+        <div style="text-align:center;"><div class="lbl" style="font-size:9px;">Stand</div><div id="score_lead" style="font-size:13px;font-weight:500;color:var(--navy);"></div></div>
+        <div style="text-align:right;"><div style="color:var(--orange);font-weight:500;font-size:14px;">Düsseldorf <i class="ti ti-map-pin" style="font-size:13px;"></i></div><div class="muted">Team Rhein</div></div>
+      </div>
+      <div class="score-bar"><div class="score-bar-f" id="bar_f" style="width:50%;"></div><div class="score-bar-d" id="bar_d" style="width:50%;"></div></div>
+      <div class="row" style="justify-content:space-between;margin-top:7px;">
+        <span id="score_f" class="score-pts" style="color:var(--navy);"></span>
+        <span id="score_d" class="score-pts" style="color:var(--orange);"></span>
+      </div>
+    </div>
+
+    <!-- Meine Stats -->
+    <div class="card">
+      <div class="lbl" style="margin-bottom:10px;"><i class="ti ti-user" style="font-size:11px;"></i> Meine Statistik</div>
+      <div class="row" style="gap:10px;">
+        <div style="flex:1;background:var(--light);border-radius:10px;padding:12px;text-align:center;"><div style="color:var(--blue);font-size:10px;text-transform:uppercase;letter-spacing:.1em;">Gesamt</div><div id="stat_total" style="font-size:22px;font-weight:500;color:var(--navy);margin-top:3px;">0</div><div style="font-size:10px;color:var(--muted);">Punkte</div></div>
+        <div style="flex:1;background:var(--light);border-radius:10px;padding:12px;text-align:center;"><div style="color:var(--blue);font-size:10px;text-transform:uppercase;letter-spacing:.1em;">Einheiten</div><div id="stat_units" style="font-size:22px;font-weight:500;color:var(--navy);margin-top:3px;">0</div><div style="font-size:10px;color:var(--muted);">gesamt</div></div>
+        <div style="flex:1;background:var(--light);border-radius:10px;padding:12px;text-align:center;"><div style="color:var(--blue);font-size:10px;text-transform:uppercase;letter-spacing:.1em;">Fotos</div><div id="stat_photos" style="font-size:22px;font-weight:500;color:var(--orange);margin-top:3px;">0</div><div style="font-size:10px;color:var(--muted);">hochgeladen</div></div>
+      </div>
+    </div>
+
+    <!-- Rangliste -->
+    <div class="card">
+      <div class="lbl" style="margin-bottom:12px;"><i class="ti ti-trophy" style="font-size:11px;"></i> Rangliste</div>
+      <div id="leaderboard"></div>
+    </div>
+
+    <!-- Punktesystem -->
+    <div class="card">
+      <div class="lbl" style="margin-bottom:10px;"><i class="ti ti-info-circle" style="font-size:11px;"></i> Punktesystem</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="row" style="justify-content:space-between;"><div class="row"><i class="ti ti-swimming" style="color:var(--navy);font-size:18px;"></i> <span style="font-size:13px;color:var(--navy);">Schwimmen</span></div><span style="font-weight:500;color:var(--navy);font-size:13px;">10 Pkt / km</span></div>
+        <div class="row" style="justify-content:space-between;"><div class="row"><i class="ti ti-run" style="color:var(--blue);font-size:18px;"></i> <span style="font-size:13px;color:var(--navy);">Laufen</span></div><span style="font-weight:500;color:var(--navy);font-size:13px;">2 Pkt / km</span></div>
+        <div class="row" style="justify-content:space-between;"><div class="row"><i class="ti ti-bike" style="color:var(--orange);font-size:18px;"></i> <span style="font-size:13px;color:var(--navy);">Radfahren</span></div><span style="font-weight:500;color:var(--navy);font-size:13px;">1 Pkt / km</span></div>
+        <div style="border-top:.5px solid var(--border);padding-top:8px;" class="row"><div class="row" style="flex:1;justify-content:space-between;"><div class="row"><i class="ti ti-camera" style="color:var(--orange);font-size:18px;"></i> <span style="font-size:13px;color:var(--navy);">Foto-Bonus</span></div><span style="font-weight:500;color:var(--orange);font-size:13px;">+5 Pkt / Einheit</span></div></div>
+      </div>
+    </div>
+
+    <!-- Prämie -->
+    <div class="card-dark">
+      <div style="color:var(--orange);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;margin-bottom:6px;"><i class="ti ti-gift" style="font-size:10px;"></i> Prämie · Gewinnerstadt</div>
+      <div style="color:var(--offwht);font-weight:500;font-size:15px;margin-bottom:4px;">Am Ende wartet etwas Kleines</div>
+      <div style="color:var(--blue);font-size:12px;line-height:1.6;">Zum Abschluss der Challenge gibt es für die Gewinnerstadt eine kleine Überraschung. Was genau, verraten wir nach dem Zieleinlauf — trainiert einfach. 😉</div>
+    </div>
+  </div>
+
+  <!-- EINHEIT -->
+  <div id="tab_log_content" class="content" style="display:none;">
+    <div class="card">
+      <div class="lbl" style="margin-bottom:14px;"><i class="ti ti-plus-circle" style="font-size:12px;"></i> Neue Einheit eintragen</div>
+      <div class="lbl" style="font-size:9px;color:var(--muted);margin-bottom:8px;">SCHRITT 1 · Disziplin wählen</div>
+      <div class="disc-row" style="margin-bottom:16px;">
+        <div class="dcard" id="ds_swim" onclick="selDisc('swim')"><i class="ti ti-swimming" style="color:var(--navy);"></i><div class="dn">Schwimmen</div><div class="dp">10 Pkt/km</div></div>
+        <div class="dcard" id="ds_run" onclick="selDisc('run')"><i class="ti ti-run" style="color:var(--blue);"></i><div class="dn">Laufen</div><div class="dp">2 Pkt/km</div></div>
+        <div class="dcard" id="ds_bike" onclick="selDisc('bike')"><i class="ti ti-bike" style="color:var(--orange);"></i><div class="dn">Radfahren</div><div class="dp">1 Pkt/km</div></div>
+      </div>
+      <div class="lbl" style="font-size:9px;color:var(--muted);margin-bottom:8px;">SCHRITT 2 · Kilometer eingeben</div>
+      <div class="row" style="margin-bottom:16px;gap:10px;">
+        <input type="number" id="km_inp" min="0.1" step="0.1" placeholder="z. B. 5.5" oninput="calcPreview()" style="flex:1;"/>
+        <span class="muted" style="white-space:nowrap;font-size:14px;">km</span>
+      </div>
+      <div class="lbl" style="font-size:9px;color:var(--muted);margin-bottom:4px;">SCHRITT 3 · Foto hochladen <span style="color:var(--orange);margin-left:4px;">+5 Pkt Bonus</span></div>
+      <div class="muted" style="margin-bottom:8px;">Optional — zeig deinem Team, was du geleistet hast!</div>
+      <div id="photo_zone" class="photo-zone" onclick="document.getElementById('photo_file').click()" style="margin-bottom:14px;">
+        <i class="ti ti-camera"></i><p>Foto auswählen oder Kamera öffnen</p>
+        <input type="file" id="photo_file" accept="image/*" style="display:none;" onchange="onPhotoSelect()"/>
+      </div>
+      <div id="photo_prev" class="photo-preview" style="display:none;margin-bottom:14px;">
+        <img id="photo_img" alt="Trainings-Foto"/>
+        <div class="photo-badge"><i class="ti ti-camera" style="font-size:10px;"></i> +5 Pkt</div>
+        <button class="photo-remove" onclick="removePhoto()">×</button>
+      </div>
+      <div id="pts_preview" class="pts-prev" style="display:none;">
+        <div class="row" style="justify-content:space-between;"><span class="muted">Punkte diese Einheit</span><span id="pts_num" class="pts-num"></span></div>
+        <div id="pts_detail" class="pts-break"></div>
+      </div>
+      <div id="log_toast" class="toast"></div>
+      <button class="btn-orange" id="log_btn" onclick="saveUnit()" disabled>Einheit speichern</button>
+    </div>
+    <div class="card" style="background:var(--light);">
+      <div class="muted" style="line-height:1.7;"><i class="ti ti-shield-check" style="font-size:13px;color:var(--blue);"></i> <strong style="color:var(--navy);">Vertrauensbasiert</strong> — Tragt eure Trainings ehrlich ein. Das System ist auf gegenseitiges Vertrauen unter Kollegen ausgelegt. 🤝</div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY -->
+  <div id="tab_comm_content" class="content" style="display:none;">
+    <div class="card">
+      <div class="lbl" style="margin-bottom:4px;"><i class="ti ti-speakerphone" style="font-size:12px;"></i> Aktivität ankündigen</div>
+      <div class="muted" style="margin-bottom:12px;">„Wer hat Lust mitzumachen?" — dein Team wird sofort benachrichtigt.</div>
+      <div style="margin-bottom:10px;"><label class="inp-label" for="comm_disc">Disziplin</label><select id="comm_disc"><option>Laufen</option><option>Radfahren</option><option>Schwimmen</option></select></div>
+      <div style="margin-bottom:10px;"><label class="inp-label" for="comm_time">Wann</label><input type="text" id="comm_time" placeholder="z. B. Sa 9:00 · 8 km locker"/></div>
+      <div style="margin-bottom:10px;"><label class="inp-label" for="comm_detail">Details (Treffpunkt, Tempo, Sonstiges)</label><textarea id="comm_detail" placeholder="z. B. Treffpunkt am Eisernen Steg, lockeres Tempo, danach Café"></textarea></div>
+      <div id="comm_banner" style="display:none;background:#FFF0EA;border:.5px solid var(--orange);border-radius:8px;padding:9px 12px;margin-bottom:10px;color:#C2451A;font-size:12px;"><i class="ti ti-circle-check" style="font-size:13px;"></i> Benachrichtigung an dein Team gesendet!</div>
+      <button class="btn-orange" onclick="postActivity()">An mein Team senden</button>
+    </div>
+    <div class="lbl" style="margin-bottom:10px;padding:0 2px;"><i class="ti ti-bell" style="font-size:11px;"></i> Aktuelle Aktivitäten</div>
+    <div id="comm_feed"></div>
+  </div>
+
+  <div style="text-align:center;padding:10px 0 20px;"><span style="font-size:9px;color:#9AA3B8;">Midhub · creating better performance</span></div>
+</div>
+
+<!-- MODAL: Aktivität bearbeiten -->
+<div class="modal-bg" id="edit_modal">
+  <div class="modal">
+    <div class="row" style="justify-content:space-between;margin-bottom:14px;">
+      <span style="font-weight:500;color:var(--navy);font-size:15px;">Aktivität bearbeiten</span>
+      <button class="icon-btn" onclick="closeEdit()" style="font-size:20px;">×</button>
+    </div>
+    <div style="margin-bottom:10px;"><label class="inp-label">Disziplin</label><select id="edit_disc"><option>Laufen</option><option>Radfahren</option><option>Schwimmen</option></select></div>
+    <div style="margin-bottom:10px;"><label class="inp-label">Wann</label><input type="text" id="edit_time"/></div>
+    <div style="margin-bottom:14px;"><label class="inp-label">Details</label><textarea id="edit_detail"></textarea></div>
+    <div class="row" style="gap:8px;">
+      <button class="btn-ghost" style="flex:1;color:var(--orange);border-color:var(--orange);" onclick="deleteActivity()"><i class="ti ti-trash" style="font-size:12px;"></i> Löschen</button>
+      <button class="btn-orange" style="flex:2;" onclick="saveEdit()">Änderungen speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  KONFIGURATION — hier die zwei Power-Automate-URLs eintragen
+// ════════════════════════════════════════════════════════
+// Wenn beide leer bleiben, läuft die App im lokalen Test-Modus
+// (jeder sieht nur seine eigenen Daten). Sobald beide URLs gesetzt
+// sind, werden alle Daten zentral in SharePoint gespeichert und
+// alle Kollegen sehen denselben Stand.
+var SHAREPOINT_READ_URL  = '';   // ← URL vom "Lese-Flow"  (Gesamtstand holen)
+var SHAREPOINT_WRITE_URL = '';   // ← URL vom "Schreib-Flow" (Eintrag speichern)
+var POWER_AUTOMATE_PHOTO_URL = ''; // optional: separater Flow nur fürs Foto-Speichern
+
+var BACKEND_ON = (SHAREPOINT_READ_URL && SHAREPOINT_WRITE_URL);
+var POLL_MS = 30000; // alle 30 Sek. neu laden, wenn Backend aktiv
+
+// ── Triathlon-Datum (13.09.2026, 08:30 Uhr) ──
+var TRIATHLON_DATE = new Date(2026, 8, 13, 8, 30);
+
+var RATES = { swim:10, run:2, bike:1 };
+var PHOTO_BONUS = 5;
+var DISC_LABEL = { swim:'Schwimmen', run:'Laufen', bike:'Radfahren' };
+var DISC_ICON  = { 'Laufen':'ti-run', 'Radfahren':'ti-bike', 'Schwimmen':'ti-swimming' };
+
+// ════════════════════════════════════════════════════════
+//  ZUSTAND
+// ════════════════════════════════════════════════════════
+var city = '', uname = '';
+var units = [];          // alle Einheiten {person, city, disc, km, points, foto}
+var activities = [];     // alle Aktivitäten {id, owner, city, disc, time, detail, participants[]}
+var selDiscipline = null, hasPhoto = false, photoData = null;
+var editingId = null;
+var pollTimer = null;
+
+function fmt(n){ return Math.round(n).toLocaleString('de-DE'); }
+function esc(s){ return (s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+// ════════════════════════════════════════════════════════
+//  BACKEND — SharePoint über Power Automate (mit lokalem Fallback)
+// ════════════════════════════════════════════════════════
+// Senden als text/plain vermeidet die CORS-Vorabanfrage (Preflight).
+function sendToBackend(payload){
+  if(!BACKEND_ON) return Promise.resolve();
+  return fetch(SHAREPOINT_WRITE_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'text/plain' },
+    body: JSON.stringify(payload)
+  }).catch(function(e){ console.warn('Schreiben fehlgeschlagen:', e); });
+}
+
+function loadFromBackend(){
+  if(!BACKEND_ON) return Promise.resolve(false);
+  return fetch(SHAREPOINT_READ_URL, { method:'GET' })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      units = (data.units || []).map(function(u){
+        return { person:u.person, city:u.city, disc:u.disc, km:+u.km||0, points:+u.points||0, foto:!!u.foto };
+      });
+      activities = (data.activities || []).map(function(a){
+        var parts = a.participants;
+        if(typeof parts === 'string'){ try{ parts = JSON.parse(parts); }catch(e){ parts = parts? parts.split(','):[]; } }
+        return { id:+a.id, owner:a.owner, city:a.city, disc:a.disc, time:a.time, detail:a.detail||'', participants:parts||[] };
+      });
+      setSyncStatus(true);
+      return true;
+    })
+    .catch(function(e){ console.warn('Laden fehlgeschlagen:', e); setSyncStatus(false); return false; });
+}
+
+function refresh(){
+  return loadFromBackend().then(function(){ renderDash(); renderFeed(); });
+}
+
+function setSyncStatus(ok){
+  var el = document.getElementById('sync_status');
+  if(!el) return;
+  if(!BACKEND_ON){ el.innerHTML = '<i class="ti ti-device-laptop" style="font-size:11px;"></i> Lokaler Test-Modus'; el.style.color = '#879ED1'; return; }
+  if(ok){ el.innerHTML = '<i class="ti ti-cloud-check" style="font-size:11px;"></i> Mit SharePoint verbunden'; el.style.color = '#2BD6A6'; }
+  else  { el.innerHTML = '<i class="ti ti-cloud-off" style="font-size:11px;"></i> Keine Verbindung — zeige letzten Stand'; el.style.color = '#FF541D'; }
+}
+
+// ── Onboarding ──
+function selCity(c){
+  city=c;
+  document.getElementById('cF').className='city-card'+(c==='F'?' sel-f':'');
+  document.getElementById('cD').className='city-card'+(c==='D'?' sel-d':'');
+  chkOnb();
+}
+function chkOnb(){
+  uname=document.getElementById('inp_name').value.trim();
+  document.getElementById('onb_btn').disabled=!(city&&uname.length>0);
+}
+function startApp(){
+  if(!city||!uname)return;
+  document.getElementById('onb').classList.remove('active');
+  document.getElementById('main').classList.add('active');
+  document.getElementById('hdr_badge').textContent=city==='F'?'FFM':'DUS';
+  startCountdown();
+  setSyncStatus(false);
+  refresh();
+  if(BACKEND_ON && !pollTimer){ pollTimer = setInterval(refresh, POLL_MS); }
+}
+function resetApp(){
+  document.getElementById('main').classList.remove('active');
+  document.getElementById('onb').classList.add('active');
+}
+
+// ── Tabs ──
+function showTab(t){
+  ['dash','log','comm'].forEach(function(x){
+    document.getElementById('tab_'+x).classList.remove('active');
+    document.getElementById('tab_'+x+'_content').style.display='none';
+  });
+  document.getElementById('tab_'+t).classList.add('active');
+  document.getElementById('tab_'+t+'_content').style.display='block';
+  if(t==='dash')renderDash();
+  if(t==='comm')renderFeed();
+}
+
+// ── Countdown ──
+function startCountdown(){
+  var opts={day:'2-digit',month:'long',year:'numeric'};
+  document.getElementById('cd_target').textContent=TRIATHLON_DATE.toLocaleDateString('de-DE',opts)+' · 08:30 Uhr';
+  tickCountdown();
+  setInterval(tickCountdown,60000);
+}
+function tickCountdown(){
+  var now=new Date(), diff=TRIATHLON_DATE-now;
+  if(diff<=0){ document.getElementById('cd_grid').innerHTML='<div style="color:var(--offwht);font-size:15px;font-weight:500;padding:6px 0;">🏁 Es ist soweit – viel Erfolg!</div>'; return; }
+  document.getElementById('cd_days').textContent=Math.floor(diff/86400000);
+  document.getElementById('cd_hours').textContent=Math.floor(diff%86400000/3600000);
+  document.getElementById('cd_mins').textContent=Math.floor(diff%3600000/60000);
+}
+
+// ── Aggregation: Punkte/Stats aus allen Einheiten berechnen ──
+function computeScores(){
+  var ptsF=0, ptsD=0, perPerson={};
+  units.forEach(function(u){
+    if(u.city==='F') ptsF+=u.points; else if(u.city==='D') ptsD+=u.points;
+    var key=u.person+'|'+u.city;
+    if(!perPerson[key]) perPerson[key]={ n:u.person, c:u.city, p:0 };
+    perPerson[key].p+=u.points;
+  });
+  var mine=units.filter(function(u){ return u.person===uname; });
+  var myPts=mine.reduce(function(s,u){ return s+u.points; },0);
+  var myPhotos=mine.filter(function(u){ return u.foto; }).length;
+  return { ptsF:ptsF, ptsD:ptsD, board:Object.keys(perPerson).map(function(k){return perPerson[k];}),
+           myPts:myPts, myUnits:mine.length, myPhotos:myPhotos };
+}
+
+// ── Dashboard ──
+function renderDash(){
+  var s=computeScores();
+  var total=s.ptsF+s.ptsD;
+  document.getElementById('bar_f').style.width=(total?Math.round(s.ptsF/total*100):50)+'%';
+  document.getElementById('bar_d').style.width=(total?Math.round(s.ptsD/total*100):50)+'%';
+  document.getElementById('score_f').textContent=fmt(s.ptsF)+' Pkt';
+  document.getElementById('score_d').textContent=fmt(s.ptsD)+' Pkt';
+  var diff=s.ptsF-s.ptsD, lead=document.getElementById('score_lead');
+  if(diff===0){ lead.textContent='Gleichstand'; lead.style.color='#07153E'; }
+  else { lead.textContent=(diff>0?'+':'−')+fmt(Math.abs(diff))+(diff>0?' FFM':' DUS'); lead.style.color=diff>0?'#07153E':'#FF541D'; }
+
+  document.getElementById('stat_total').textContent=fmt(s.myPts);
+  document.getElementById('stat_units').textContent=s.myUnits;
+  document.getElementById('stat_photos').textContent=s.myPhotos;
+
+  var sorted=s.board.sort(function(a,b){return b.p-a.p;});
+  var bd=document.getElementById('leaderboard');
+  if(sorted.length===0){ bd.innerHTML='<div class="board-empty">Noch keine Einträge — sei die/der Erste!</div>'; return; }
+  bd.innerHTML=sorted.map(function(p,i){
+    var isMe=p.n===uname, pillCls=p.c==='F'?'pill-f':'pill-d';
+    return '<div class="board-row"><div class="row"><span class="board-rank">'+(i+1)+'</span><span class="board-name'+(isMe?' me':'')+'">'+esc(p.n)+(isMe?' ★':'')+'</span><span class="pill '+pillCls+'">'+(p.c==='F'?'FFM':'DUS')+'</span></div><span class="board-pts">'+fmt(p.p)+'</span></div>';
+  }).join('');
+}
+
+// ── Einheit eintragen ──
+function selDisc(d){
+  selDiscipline=d;
+  ['swim','run','bike'].forEach(function(x){ document.getElementById('ds_'+x).className='dcard'+(x===d?' sel':''); });
+  calcPreview();
+}
+function calcPreview(){
+  var km=parseFloat(document.getElementById('km_inp').value)||0;
+  var prev=document.getElementById('pts_preview'), btn=document.getElementById('log_btn');
+  if(selDiscipline&&km>0){
+    var base=Math.round(km*RATES[selDiscipline]), bonus=hasPhoto?PHOTO_BONUS:0, total=base+bonus;
+    document.getElementById('pts_num').textContent='+'+fmt(total)+' Pkt';
+    var detail=km.toFixed(1)+' km × '+RATES[selDiscipline]+' = '+base+' Pkt'; if(bonus)detail+=' + '+bonus+' Pkt Foto-Bonus';
+    document.getElementById('pts_detail').textContent=detail;
+    prev.style.display='block'; btn.disabled=false;
+  } else { prev.style.display='none'; btn.disabled=true; }
+}
+function onPhotoSelect(){
+  var f=document.getElementById('photo_file').files[0]; if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){ photoData=e.target.result; document.getElementById('photo_img').src=photoData;
+    document.getElementById('photo_prev').style.display='block'; document.getElementById('photo_zone').style.display='none';
+    hasPhoto=true; calcPreview(); };
+  r.readAsDataURL(f);
+}
+function removePhoto(){
+  hasPhoto=false; photoData=null;
+  document.getElementById('photo_prev').style.display='none'; document.getElementById('photo_zone').style.display='block';
+  document.getElementById('photo_file').value=''; calcPreview();
+}
+function saveUnit(){
+  var km=parseFloat(document.getElementById('km_inp').value)||0;
+  if(!selDiscipline||km<=0)return;
+  var base=Math.round(km*RATES[selDiscipline]), bonus=hasPhoto?PHOTO_BONUS:0, total=base+bonus;
+  var unit={ person:uname, city:city, disc:selDiscipline, km:km, points:total, foto:hasPhoto };
+
+  // Lokal sofort anzeigen (optimistisch)
+  units.push(unit);
+
+  // An SharePoint senden
+  sendToBackend({ action:'unit', person:uname, city:city, disc:selDiscipline, km:km, points:total, foto:hasPhoto })
+    .then(function(){ if(BACKEND_ON) refresh(); });
+
+  // optional: Foto separat speichern
+  if(hasPhoto && POWER_AUTOMATE_PHOTO_URL){
+    var fn=uname.replace(/\s/g,'_')+'_'+DISC_LABEL[selDiscipline]+'_'+new Date().toISOString().slice(0,10)+'.jpg';
+    fetch(POWER_AUTOMATE_PHOTO_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({dateiname:fn,inhalt:photoData.split(',')[1],person:uname,disziplin:DISC_LABEL[selDiscipline]})}).catch(function(){});
+  }
+
+  showToast('log_toast','<i class="ti ti-circle-check" style="font-size:14px;color:#2BD6A6;"></i> <strong>+'+fmt(total)+' Punkte</strong> für '+DISC_LABEL[selDiscipline]+' ('+km.toFixed(1)+' km)'+(bonus?' inkl. Foto-Bonus':'')+'!');
+  document.getElementById('km_inp').value=''; selDiscipline=null; hasPhoto=false; photoData=null;
+  ['swim','run','bike'].forEach(function(x){document.getElementById('ds_'+x).className='dcard';});
+  document.getElementById('photo_prev').style.display='none'; document.getElementById('photo_zone').style.display='block';
+  document.getElementById('photo_file').value=''; document.getElementById('pts_preview').style.display='none';
+  document.getElementById('log_btn').disabled=true;
+  renderDash();
+}
+
+// ── Community ──
+function postActivity(){
+  var disc=document.getElementById('comm_disc').value;
+  var time=document.getElementById('comm_time').value.trim()||'Zeit offen';
+  var detail=document.getElementById('comm_detail').value.trim();
+  var id=Date.now();
+  var act={ id:id, owner:uname, city:city, disc:disc, time:time, detail:detail, participants:[] };
+  activities.unshift(act);
+  sendToBackend({ action:'activity_create', id:id, owner:uname, city:city, disc:disc, time:time, detail:detail, participants:[] })
+    .then(function(){ if(BACKEND_ON) refresh(); });
+  document.getElementById('comm_time').value=''; document.getElementById('comm_detail').value='';
+  var b=document.getElementById('comm_banner'); b.style.display='block'; setTimeout(function(){b.style.display='none';},3000);
+  renderFeed();
+}
+function renderFeed(){
+  var feed=document.getElementById('comm_feed');
+  if(activities.length===0){ feed.innerHTML='<div class="board-empty">Noch keine Aktivitäten — kündige die erste an!</div>'; return; }
+  feed.innerHTML=activities.map(function(a){
+    var isOwner=a.owner===uname, joined=a.participants.indexOf(uname)>=0, teamLabel=a.city==='F'?'FFM':'DUS';
+    var ownerControls=isOwner?'<button class="icon-btn" onclick="openEdit('+a.id+')" title="Bearbeiten"><i class="ti ti-pencil"></i></button>':'';
+    var joinBtn=isOwner?'':'<button class="joinb'+(joined?' joined':'')+'" onclick="toggleJoin('+a.id+')">'+(joined?'dabei ✓':'mitmachen')+'</button>';
+    var partHtml = a.participants.length>0
+      ? '<div class="participants"><div class="muted" style="margin-bottom:4px;"><i class="ti ti-users" style="font-size:11px;"></i> '+a.participants.length+' dabei:</div>'+a.participants.map(function(p){return '<span class="chip'+(p===uname?' me':'')+'">'+esc(p)+'</span>';}).join('')+'</div>'
+      : '<div class="participants"><span class="muted">Noch niemand angemeldet</span></div>';
+    var detailHtml=a.detail?'<div class="post-detail"><i class="ti ti-map-pin" style="font-size:11px;"></i> '+esc(a.detail)+'</div>':'';
+    return '<div class="post"><div class="row" style="justify-content:space-between;margin-bottom:4px;"><div><span class="post-name">'+esc(a.owner)+'</span><span class="muted" style="margin-left:5px;">· '+esc(a.disc)+' · '+teamLabel+(isOwner?' · du':'')+'</span></div><div class="row" style="gap:2px;">'+ownerControls+joinBtn+'</div></div><div class="post-meta"><i class="ti '+(DISC_ICON[a.disc]||'ti-run')+'" style="font-size:12px;"></i> '+esc(a.time)+'</div>'+detailHtml+partHtml+'</div>';
+  }).join('');
+}
+function toggleJoin(id){
+  var a=activities.find(function(x){return x.id===id;}); if(!a)return;
+  var i=a.participants.indexOf(uname);
+  if(i>=0)a.participants.splice(i,1); else a.participants.push(uname);
+  sendToBackend({ action:'activity_setparticipants', id:id, participants:a.participants }).then(function(){ if(BACKEND_ON) refresh(); });
+  renderFeed();
+}
+function openEdit(id){
+  var a=activities.find(function(x){return x.id===id;}); if(!a||a.owner!==uname)return;
+  editingId=id;
+  document.getElementById('edit_disc').value=a.disc;
+  document.getElementById('edit_time').value=a.time;
+  document.getElementById('edit_detail').value=a.detail;
+  document.getElementById('edit_modal').classList.add('show');
+}
+function closeEdit(){ editingId=null; document.getElementById('edit_modal').classList.remove('show'); }
+function saveEdit(){
+  var a=activities.find(function(x){return x.id===editingId;}); if(!a)return;
+  a.disc=document.getElementById('edit_disc').value;
+  a.time=document.getElementById('edit_time').value.trim()||'Zeit offen';
+  a.detail=document.getElementById('edit_detail').value.trim();
+  sendToBackend({ action:'activity_update', id:a.id, disc:a.disc, time:a.time, detail:a.detail }).then(function(){ if(BACKEND_ON) refresh(); });
+  closeEdit(); renderFeed();
+}
+function deleteActivity(){
+  var id=editingId;
+  activities=activities.filter(function(x){return x.id!==id;});
+  sendToBackend({ action:'activity_delete', id:id }).then(function(){ if(BACKEND_ON) refresh(); });
+  closeEdit(); renderFeed();
+}
+
+function showToast(id,html){
+  var el=document.getElementById(id); el.innerHTML=html; el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show');},3500);
+}
+</script>
+</body>
+</html>
