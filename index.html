@@ -341,6 +341,9 @@ var SHAREPOINT_WRITE_URL = '';   // ← URL vom "Schreib-Flow" (Eintrag speicher
 var POWER_AUTOMATE_PHOTO_URL = ''; // optional: separater Flow nur fürs Foto-Speichern
 
 var BACKEND_ON = (SHAREPOINT_READ_URL && SHAREPOINT_WRITE_URL);
+// Stufe 1: Community bleibt lokal (false). Stufe 2: auf true setzen,
+// sobald der Schreib-/Lese-Flow auch Aktivitäten verarbeitet.
+var ACTIVITIES_BACKEND = false;
 var POLL_MS = 30000; // alle 30 Sek. neu laden, wenn Backend aktiv
 
 // ── Triathlon-Datum (13.09.2026, 08:30 Uhr) ──
@@ -385,11 +388,13 @@ function loadFromBackend(){
       units = (data.units || []).map(function(u){
         return { person:u.person, city:u.city, disc:u.disc, km:+u.km||0, points:+u.points||0, foto:!!u.foto };
       });
-      activities = (data.activities || []).map(function(a){
-        var parts = a.participants;
-        if(typeof parts === 'string'){ try{ parts = JSON.parse(parts); }catch(e){ parts = parts? parts.split(','):[]; } }
-        return { id:+a.id, owner:a.owner, city:a.city, disc:a.disc, time:a.time, detail:a.detail||'', participants:parts||[] };
-      });
+      if(ACTIVITIES_BACKEND){
+        activities = (data.activities || []).map(function(a){
+          var parts = a.participants;
+          if(typeof parts === 'string'){ try{ parts = JSON.parse(parts); }catch(e){ parts = parts? parts.split(','):[]; } }
+          return { id:+a.id, owner:a.owner, city:a.city, disc:a.disc, time:a.time, detail:a.detail||'', participants:parts||[] };
+        });
+      }
       setSyncStatus(true);
       return true;
     })
@@ -568,8 +573,7 @@ function postActivity(){
   var id=Date.now();
   var act={ id:id, owner:uname, city:city, disc:disc, time:time, detail:detail, participants:[] };
   activities.unshift(act);
-  sendToBackend({ action:'activity_create', id:id, owner:uname, city:city, disc:disc, time:time, detail:detail, participants:[] })
-    .then(function(){ if(BACKEND_ON) refresh(); });
+  if(ACTIVITIES_BACKEND){ sendToBackend({ action:'activity_create', id:id, owner:uname, city:city, disc:disc, time:time, detail:detail, participants:[] }).then(function(){ refresh(); }); }
   document.getElementById('comm_time').value=''; document.getElementById('comm_detail').value='';
   var b=document.getElementById('comm_banner'); b.style.display='block'; setTimeout(function(){b.style.display='none';},3000);
   renderFeed();
@@ -592,7 +596,7 @@ function toggleJoin(id){
   var a=activities.find(function(x){return x.id===id;}); if(!a)return;
   var i=a.participants.indexOf(uname);
   if(i>=0)a.participants.splice(i,1); else a.participants.push(uname);
-  sendToBackend({ action:'activity_setparticipants', id:id, participants:a.participants }).then(function(){ if(BACKEND_ON) refresh(); });
+  if(ACTIVITIES_BACKEND){ sendToBackend({ action:'activity_setparticipants', id:id, participants:a.participants }).then(function(){ refresh(); }); }
   renderFeed();
 }
 function openEdit(id){
@@ -609,13 +613,13 @@ function saveEdit(){
   a.disc=document.getElementById('edit_disc').value;
   a.time=document.getElementById('edit_time').value.trim()||'Zeit offen';
   a.detail=document.getElementById('edit_detail').value.trim();
-  sendToBackend({ action:'activity_update', id:a.id, disc:a.disc, time:a.time, detail:a.detail }).then(function(){ if(BACKEND_ON) refresh(); });
+  if(ACTIVITIES_BACKEND){ sendToBackend({ action:'activity_update', id:a.id, disc:a.disc, time:a.time, detail:a.detail }).then(function(){ refresh(); }); }
   closeEdit(); renderFeed();
 }
 function deleteActivity(){
   var id=editingId;
   activities=activities.filter(function(x){return x.id!==id;});
-  sendToBackend({ action:'activity_delete', id:id }).then(function(){ if(BACKEND_ON) refresh(); });
+  if(ACTIVITIES_BACKEND){ sendToBackend({ action:'activity_delete', id:id }).then(function(){ refresh(); }); }
   closeEdit(); renderFeed();
 }
 
